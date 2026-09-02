@@ -1,0 +1,1255 @@
+/* ============================================================
+ * Cyber-Android-Monitor-Pro 网页模拟器 — 主题样式
+ * 直译自 app/src/main/java/com/rb/cybermonitorpro/ui/theme/Color.kt
+ *  (Cyberpunk Mobile HUD 主题 · 暗紫渐变 · 霓虹辉光 · 钢蓝辅色)
+ * sp→px 直译，dp→px 1:1；目标容器宽约 392px(手机逻辑宽)
+ * ============================================================ */
+
+:root {
+  /* ── 背景与表面 (Color.kt) ── */
+  --cyber-background: #0A0A0F;      /* CyberBackground 深黑底色 */
+  --cyber-card-start: #171417;      /* CyberCardStart 卡片渐变起点 */
+  --cyber-card-end:   #451B45;      /* CyberCardEnd 卡片渐变终点 */
+  --cyber-muted:      #27273B;      /* 图标底板/次级表面 */
+  --cyber-pill:       #1E1C35;      /* 底部药丸/浮层 */
+  --cyber-elevated:   #18182A;      /* 弹窗表面 */
+
+  /* ── 霓虹紫色系 ── */
+  --neon-purple:        #7C3AED;    /* 主霓虹紫 */
+  --neon-purple-bright: #A78BFA;    /* 高亮紫 = TextValue */
+  --neon-purple-pale:   #E2E8F0;    /* 浅紫白文字 */
+  --neon-purple-deep:   #4C1D95;    /* 深紫边框 */
+
+  /* ── 辅助色 ── */
+  --neon-steel-blue: #3D70B8;
+  --neon-cyan:       #00D4FF;
+  --neon-magenta:    #F43F5E;
+  --neon-magenta-purple: #D946EF;
+
+  /* ── 辉光阴影 ── */
+  --purple-glow:        rgba(124,58,237,0.15);
+  --purple-glow-light:  rgba(124,58,237,0.10);
+  --purple-glow-strong: rgba(124,58,237,0.25);
+
+  /* ── 图表 ── */
+  --chart-area-purple: rgba(124,58,237,0.19);
+  --chart-glow: rgba(124,58,237,0.31);
+
+  /* ── 功能色 ── */
+  --success-neon: #34C759;
+  --warning-neon: #FFAB00;
+  --error-neon:   #FF1744;
+  --titanium-gold:#C9A86A;
+  --deep-red-alert:#9B1C1C;
+  --neon-deep-pink:#C2185B;
+
+  /* ── 文字 ── */
+  --text-primary:   #E2E8F0;
+  --text-secondary: #94A3B8;
+  --text-on-primary:#FFFFFF;
+
+  /* ── 分割线 / 进度轨道 ── */
+  --divider-cyber:  #4C1D95;
+  --progress-track: #1A1028;
+
+  /* 内存分布图例 (MemoryDistributionCard) */
+  --mem-app:    #C084FC;
+  --mem-cached: #818CF8;
+  --mem-system: #00D4FF;
+  --mem-free:   #34C759;
+  --mem-other:  #94A3B8;
+
+  --radius-card: 20px;
+  /* Reveal Light 光斑半径（RevealLightModifier.kt:44-46 / MainActivity.kt:786） */
+  --reveal-r-card: 160px;      /* InfoCard / MetricCard: radius = 160.dp */
+  --reveal-r-header: 200px;    /* 药丸头部: radius = 200.dp */
+  /* 离线字体栈：Orbitron 首选（若日后内嵌 woff2 自动启用），否则回落到系统等宽；
+     末尾补中文字族——Type.kt:18-21 说明 Skia 对中文会 fallback 到系统默认（非等宽），
+     若只留 monospace 中文会落到等宽字体，与原生不一致。全部为系统自带字体，离线可用。 */
+  --font-num: 'Orbitron', ui-monospace, 'SF Mono', 'Cascadia Code', 'Consolas', 'Roboto Mono', monospace,
+              'Microsoft YaHei', 'PingFang SC', 'Noto Sans SC';
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  height: 100%;
+  background:
+    radial-gradient(1200px 700px at 80% -10%, rgba(124,58,237,.12), transparent 60%),
+    radial-gradient(900px 600px at -10% 110%, rgba(61,112,184,.10), transparent 55%),
+    var(--cyber-background);
+  color: var(--text-primary);
+  font-family: 'Orbitron', system-ui, -apple-system, 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', 'Noto Sans SC', sans-serif;
+  overflow: hidden;
+}
+
+/* ─── 手机外框（桌面浏览器观看时提供设备语境） ─── */
+#phone {
+  position: relative;
+  width: min(412px, 100vw);
+  height: min(892px, 100vh);
+  margin: 0 auto;
+  background: var(--cyber-background);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+@media (min-width: 480px) and (min-height: 720px) {
+  #phone {
+    border-radius: 28px;
+    border: 1px solid rgba(167,139,250,.22);
+    box-shadow: 0 0 60px var(--purple-glow-strong), inset 0 0 40px rgba(10,10,15,.9);
+    margin-top: max(12px, calc((100vh - 900px)/2));
+  }
+}
+
+/* ============================================================
+ * 药丸头部 (MainActivity.kt:781-887)
+ *   Box fillMaxWidth .padding(horizontal=6.dp, vertical=4.dp) .height(64.dp)
+ *       .revealLight(radius=200.dp, intensity=0.15f) .neonBorderGlow()
+ *   ├─ NeonHeaderDecoration(matchParentSize, clip 26.dp)  ← .pill-deco
+ *   └─ Row(fillMaxWidth, padding start/end/top = 4.dp, CenterVertically)  ← .pill-row
+ *        ├─ ScrollableTabRow(weight 1f, edgePadding 0, divider {}, indicator 3.dp)
+ *        ├─ GlassCircleButton 36.dp { Icon 17.dp }
+ *        └─ GlassCircleButton 36.dp { Icon 17.dp }
+ * ============================================================ */
+#pill-header {
+  position: relative;
+  grid-area: header;
+  height: 64px;
+  margin: 4px 6px 0;          /* padding(horizontal=6.dp, vertical=4.dp) */
+  padding: 0;
+  border-radius: 26px;
+  background: transparent;
+  overflow: hidden;
+  /* neonBorderGlow shadow(6.dp, ambient=NeonPurple@.5, spot=NeonPurpleBright@.7) */
+  box-shadow: 0 2px 6px rgba(124,58,237,.5), 0 1px 3px rgba(167,139,250,.7);
+  z-index: 5;
+}
+/* neonBorderGlow border(1.5.dp) 横向渐变 — 与 #night-bar::before 同款 mask-composite 技巧 */
+#pill-header::before {
+  content: '';
+  position: absolute; inset: 0; border-radius: 26px; padding: 1.5px;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(76,29,149,.4),    /* NeonPurpleDeep @ .4 */
+    rgba(167,139,250,.7),  /* NeonPurpleBright @ .7 */
+    rgba(124,58,237,.6),   /* NeonPurple @ .6 */
+    rgba(76,29,149,.4),
+    transparent);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask-composite: exclude;
+  pointer-events: none;
+  z-index: 3;
+}
+/* NeonHeaderDecoration.kt:30-51 — 只有两层，都是 matchParentSize + clip 26.dp
+   （源码注释明确：已去除 infiniteTransition / radialGradient / Canvas 自绘 → 无浮动微粒） */
+.pill-deco {
+  position: absolute; inset: 0; border-radius: 26px;
+  background: var(--cyber-card-start);   /* 层 1: CyberCardStart #171417 */
+  pointer-events: none;
+  z-index: 0;
+}
+.pill-deco::after {                      /* 层 2: 横向扫光 Transparent → NeonPurple@.15 → Transparent */
+  content: '';
+  position: absolute; inset: 0; border-radius: 26px;
+  background: linear-gradient(90deg, transparent, rgba(124,58,237,.15), transparent);
+}
+/* Row(.padding(start=4.dp, end=4.dp, top=4.dp), CenterVertically) */
+.pill-row {
+  position: relative;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 4px 4px 0;
+  z-index: 1;
+}
+
+/* 玻璃圆底操作按钮 — 9 层浅色冷调毛玻璃 (GlowBackButton.kt:378-479 drawFrostedGlassV3) */
+.glass-circle-btn {
+  width: 36px; height: 36px; flex: none;
+  border-radius: 50%;
+  border: none;
+  /* L8 底部黑托底(.55→.20→透明) / L5 顶部镜面弧(#E8F4FC@.30) / L3 右侧补光(白@.18)
+     L2 左上主光斑(#EAF3FB .52→.18) / L4 冷白叠加(#FAFCFF@.07) / L1 基面(#F2F6FA@.34) */
+  background:
+    radial-gradient(circle at 50% 82%, rgba(0,0,0,.55) 0%, rgba(0,0,0,.20) 40%, transparent 70%),
+    radial-gradient(circle at 50% 6%,  rgba(232,244,252,.30) 0%, transparent 45%),
+    radial-gradient(circle at 72% 60%, rgba(255,255,255,.18) 0%, transparent 42%),
+    radial-gradient(circle at 28% 26%, rgba(234,243,251,.52) 0%, rgba(234,243,251,.18) 45%, transparent 74%),
+    linear-gradient(rgba(250,252,255,.07), rgba(250,252,255,.07)),
+    rgba(242,246,250,.34);
+  /* L0 内凹阴影(黑@.14) + L6 rim light(白 .60→.32 上 / .14 下) 近似 */
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.38),
+    inset 0 0 0 2.4px rgba(0,0,0,.14),
+    0 2px 6px rgba(0,0,0,.40);
+  color: rgba(26,26,46,.85);            /* MainActivity.kt:869/882 Icon tint #1A1A2E @ .85 */
+  font-size: 17px;                      /* Icon 17.dp */
+  display: grid; place-items: center;
+  cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.glass-circle-btn .cicon { width: 17px; height: 17px; }   /* Icon Modifier.size(17.dp) */
+.glass-circle-btn:hover { box-shadow: inset 0 0 0 1px rgba(255,255,255,.55), 0 2px 10px rgba(0,0,0,.45); }
+.glass-circle-btn:active { transform: scale(.88); }       /* GlassCircleButton.kt:517 pressScale 0.88 */
+
+/* NeonDivider (NeonHeaderDecoration.kt:89-106) — height 1.5.dp, padding(horizontal=6.dp) */
+.neon-divider {
+  grid-area: divider;
+  flex: none;
+  height: 1.5px;
+  margin: 0 6px;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(76,29,149,.3),   /* NeonPurpleDeep @ .3 */
+    rgba(124,58,237,.5),  /* NeonPurple @ .5 */
+    rgba(76,29,149,.3),
+    transparent);
+}
+
+/* ============================================================
+ * Tab 行 (ScrollableTabRow edgePadding=0 / divider={} / indicator 3.dp)
+ * ============================================================ */
+#tab-row {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  gap: 0;                 /* edgePadding = 0.dp */
+  padding: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: transparent;
+  border: none;           /* divider = {} */
+}
+#tab-row::-webkit-scrollbar { display: none; }
+.tab-item {
+  position: relative;
+  border: none;
+  background: transparent;
+  color: rgba(61,112,184,.7);           /* NeonSteelBlue @ .7 (MainActivity.kt:833/850) */
+  font-family: inherit;
+  font-size: 12px;                      /* 12.sp */
+  font-weight: 400;                     /* FontWeight.Normal */
+  letter-spacing: 0;                    /* letterSpacing = 0.sp */
+  padding: 9px 14px 10px;
+  white-space: nowrap;
+  cursor: pointer;
+  display: inline-flex; align-items: center; gap: 5px;
+  transition: color .2s ease;
+}
+.tab-item .tab-icon { line-height: 0; display: inline-flex; }
+.tab-item .cicon { transition: filter .2s ease; }
+.tab-item.active .cicon { filter: drop-shadow(0 0 5px var(--purple-glow-strong)); }
+.tab-item.active {
+  color: var(--neon-purple);            /* NeonPurple #7C3AED */
+  font-weight: 700;                     /* FontWeight.Bold */
+}
+.tab-item.active::after {               /* TabRowDefaults.Indicator height = 3.dp, 纯色无渐变 */
+  content: '';
+  position: absolute; left: 0; right: 0; bottom: 0;
+  height: 3px;
+  background: var(--neon-purple);
+}
+
+/* ============================================================
+ * 页面容器：HorizontalPager (flex 轨道 + 滑移 + 卡片级联甩尾)
+ * ============================================================ */
+#pager {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-wrap: nowrap;
+  will-change: transform;
+  touch-action: pan-y;
+}
+.screen {
+  flex: 0 0 100%;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 16px;
+  display: block;
+  scrollbar-width: thin;
+  scrollbar-color: var(--divider-cyber) transparent;
+}
+/* 可见性由轨道 translateX 控制；.active 仅作状态标记（无样式，已删除空规则） */
+
+/* 入场动画 (EntranceReveal.kt:35-44)
+   REVEAL_DURATION_MS = 840 / REVEAL_STAGGER_MS = 140 / FIRST_FRAME_DEFER_MS = 32
+   REVEAL_OFFSET = 18.dp / FastOutSlowInEasing ≈ cubic-bezier(.4,0,.2,1)
+   ⚠️ 不能加 fill-mode:both —— CSS 动画优先级高于内联样式，forwards 会把末帧
+      (opacity:1; transform:none) 永久锁死，导致 applyParallax() 每帧写入的
+      级联位移/缩放/透明度全部失效（实测：带 both 时计算值恒为 matrix(1,0,0,1,0,0)）。
+      错峰由 app.js 写 animation-delay，此处只给时长/缓动。 */
+.card-enter { animation: cardReveal .84s cubic-bezier(.4,0,.2,1); }
+@keyframes cardReveal { from { opacity: 0; transform: translateY(18px);} to {opacity:1; transform:none;} }
+
+/* ============================================================
+ * 卡片体系: InfoCard / MetricCard / SectionCard
+ * RoundedCornerShape(20dp) + 渐变底 + cardGradientBorder + 辉光阴影
+ * ============================================================ */
+/* cardGradientBorder (CardGradientBorder.kt:84-111)
+   环带总宽 4.dp = 外半环 2dp(NeonPurple@.65 → NeonSteelBlue@.55，135° 左上→右下)
+                 + 内半环 2dp(Color(0xFF06030E)@.35)
+   实现：border 2px transparent + 双层 background(padding-box / border-box)，内半环用 ::before */
+.cyber-card {
+  position: relative;
+  border-radius: var(--radius-card);
+  border: 2px solid transparent;
+  background:
+    linear-gradient(135deg, var(--cyber-card-start) 0%, var(--cyber-card-end) 100%) padding-box,
+    linear-gradient(135deg, rgba(124,58,237,.65), rgba(61,112,184,.55)) border-box;
+  box-shadow: 0 6px 22px var(--purple-glow), 0 2px 8px rgba(0,0,0,.5);
+  padding: 18px;                          /* InfoCard.kt:59 / :107 / MemoryDistributionCard.kt:89 */
+  margin-bottom: 18px;                    /* 8 个非网格屏 Arrangement.spacedBy(18.dp) */
+  /* --lint 的写入发生在卡片自身（app.js setupGlobalLight），已注册自定义属性只在其值
+     发生改变的那个元素上过渡；写在 ::after 上是死声明（伪元素只继承已翻转完的值）→ 硬跳 */
+  transition: transform .16s ease, box-shadow .2s ease, --lint .4s ease;
+}
+/* 内半环：覆盖 2px..4px，圆角 cornerPx - halfPx*1.5 = 20 - 3 = 17px */
+.cyber-card::before {
+  content: '';
+  position: absolute; inset: 2px; border-radius: 17px;
+  border: 2px solid rgba(6,3,14,.35);
+  pointer-events: none;
+  z-index: 0;                             /* 低于 .cyber-card > * (z-index:1) */
+}
+.cyber-card.hdr-highlight {
+  background:
+    linear-gradient(135deg, var(--cyber-card-start) 0%, var(--cyber-card-end) 100%) padding-box,
+    linear-gradient(135deg, rgba(217,70,239,.65), rgba(217,70,239,.35)) border-box;
+  box-shadow: 0 6px 26px var(--chart-glow), 0 2px 8px rgba(0,0,0,.5);
+}
+.cyber-card.titanium {                    /* batteryTemp>40℃ 钛金描边 */
+  background:
+    linear-gradient(135deg, var(--cyber-card-start) 0%, var(--cyber-card-end) 100%) padding-box,
+    linear-gradient(135deg, rgba(201,168,106,.75), rgba(201,168,106,.45)) border-box;
+}
+.cyber-card.deep-red {
+  background:
+    linear-gradient(135deg, var(--cyber-card-start) 0%, var(--cyber-card-end) 100%) padding-box,
+    linear-gradient(135deg, rgba(155,28,28,.85), rgba(155,28,28,.5)) border-box;
+  box-shadow: 0 6px 24px rgba(155,28,28,.45);
+}
+.cyber-card:active { transform: scale(.985); }
+
+/* InfoCard: 图标块 + 大标题 + 副标题 (InfoCard.kt:60-69) */
+.info-icon-wrap {
+  width: 40px; height: 40px;              /* .size(40.dp) */
+  border-radius: 14px;                    /* RoundedCornerShape(14.dp) */
+  background: var(--cyber-muted);         /* CyberMuted #27273B */
+  border: none;
+  display: grid; place-items: center;
+  font-size: 22px;                        /* Icon 22.dp */
+  color: var(--neon-purple-bright);
+  flex: none;
+}
+/* InfoCard.kt:59 Row(padding 18.dp) + :69 Spacer(width 12.dp)
+   + :51 shadow(14.dp, ambient=PurpleGlowStrong=25%) */
+.info-row {
+  display: flex; align-items: center; gap: 12px;
+  box-shadow: 0 7px 26px rgba(124,58,237,.25), 0 2px 8px rgba(0,0,0,.5);
+}
+.info-titles { min-width: 0; }
+.info-title { font-size: 17px; font-weight: 700; letter-spacing:.3px; color: var(--text-primary); }
+.info-subtitle { font-size: 13px; color: var(--text-secondary); margin-top: 3px; }
+
+/* MetricCard: label 11sp + value 22sp(monospace 感 字母间距1.5sp) + 可选进度条/副标题/chart */
+.metric-label { font-size: 11px; font-weight: 600; letter-spacing:.5px; color: var(--text-secondary); text-transform: uppercase; }
+.metric-value {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  font-family: var(--font-num);
+  color: var(--neon-purple-bright);
+  margin-top: 6px;                        /* InfoCard.kt:112 Spacer(6.dp) */
+}
+/* InfoCard.kt:129-132 — 副标题紧跟进度条，中间无 Spacer；letterSpacing 0.5.sp */
+.metric-subtitle { font-size: 12px; color: var(--text-secondary); opacity: .7; margin-top: 0; letter-spacing: .5px; }
+.metric-card canvas, canvas[id$="-chart"] { width: 100%; height: 120px; display: block; margin-top: 10px; }
+.sub-block canvas[id$="-chart"] { margin-top: 8px; }
+
+/* 进度条: LinearProgressIndicator h=5dp track=ProgressTrack */
+.progress-track {
+  height: 5px; border-radius: 2.5px;      /* InfoCard.kt:122 RoundedCornerShape(2.5.dp) */
+  background: var(--cyber-muted);         /* InfoCard.kt:124 trackColor = CyberMuted */
+  overflow: hidden;
+  margin-top: 10px;
+}
+.progress-fill {
+  height: 100%; border-radius: 3px;
+  background: linear-gradient(90deg, var(--neon-purple), var(--neon-purple-bright));
+  box-shadow: 0 0 8px var(--neon-purple);
+  transition: width .45s cubic-bezier(.2,.7,.3,1);
+}
+.progress-fill.cyan  { background: linear-gradient(90deg,#0891B2,var(--neon-cyan)); box-shadow: 0 0 8px var(--neon-cyan); }
+.progress-fill.green { background: linear-gradient(90deg,#15803D,var(--success-neon)); box-shadow: 0 0 8px var(--success-neon); }
+.progress-fill.amber { background: linear-gradient(90deg,#B45309,var(--warning-neon)); box-shadow: 0 0 8px var(--warning-neon); }
+.progress-fill.red   { background: linear-gradient(90deg,#B91C1C,var(--error-neon)); box-shadow: 0 0 8px var(--error-neon); }
+
+/* 键值行 (SectionCard 内 Row: label … value) */
+/* DeviceScreen.kt:747-766 RowItem — label weight(0.35f) / value weight(0.65f)，均 13.sp，
+   值默认 NeonPurpleBright */
+.kv-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 7px 0;
+  border-bottom: 1px dashed rgba(76,29,149,.38);
+}
+.kv-row:last-child { border-bottom: none; }
+.kv-label { flex: 0 0 35%; font-size: 13px; color: var(--text-secondary); }
+.kv-value { flex: 0 0 65%; font-size: 13px; font-weight: 600; color: var(--neon-purple-bright); text-align: right; word-break: break-all;}
+.kv-value.mono { font-family: var(--font-num); letter-spacing:.6px; }
+.kv-value.success { color: var(--success-neon); }
+.kv-value.warning { color: var(--warning-neon); }
+.kv-value.error   { color: var(--error-neon); }
+.kv-value.cyan    { color: var(--neon-cyan); }
+.kv-value.purple  { color: var(--neon-purple-bright); }
+
+/* 分区标题 — 14.sp SemiBold NeonPurple（DeviceScreen.kt:739 / HdrLabScreen.kt:349 / OemScreen.kt:368） */
+.section-title {
+  font-size: 14px; font-weight: 600; color: var(--neon-purple);
+  letter-spacing: .5px; margin-bottom: 10px;
+  display:flex; align-items:center; gap:6px;
+}
+
+/* MemoryDistributionCard: 水平堆叠条 + 五色图例 */
+/* 标题 11.sp TextSecondary letterSpacing 0.5 (MemoryDistributionCard.kt:91-96)
+   → 标题→总量 Spacer 6.dp (:97) */
+.mem-dist-title { font-size: 11px; font-weight: 400; color: var(--text-secondary); letter-spacing: .5px; margin-bottom: 6px; }
+/* :113-118 条 height 16.dp + RoundedCornerShape(8.dp) + 无描边 */
+.mem-dist-bar {
+  display: flex; height: 16px; border-radius: 8px; overflow: hidden;
+  border: none; margin-top: 0;
+}
+.mem-seg { transition: width .5s ease; }
+/* :131 Spacer(14.dp) 条→图例；图例纵向逐行，每行自带 padding(vertical=3.dp) */
+.mem-legend { display: block; margin-top: 14px; }
+/* :155 图例标签 Modifier.width(32.dp) — 让数值列对齐 */
+.legend-item .legend-label { flex: none; width: 32px; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-secondary); }
+.legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+/* 总量→条 Spacer 12.dp (:108) */
+.mem-dist-total { font-size:22px; font-weight:700; font-family:var(--font-num); color:var(--neon-purple-bright); letter-spacing:1.5px; margin-bottom:12px; }
+/* D-5 Top processes 多行等宽紫亮 */
+#mem-procs { white-space:pre-line; font-size:12px; line-height:1.6; color:var(--neon-purple-bright); font-family:var(--font-num); }
+
+/* 数据源健康点条 (全部健康时隐藏) */
+#health-strip {
+  display: none;
+  gap: 8px; align-items: center;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  background: rgba(24,24,42,.72);
+  border: 1px solid rgba(244,63,94,.4);
+  animation: healthPulse 1.6s ease-in-out infinite;
+}
+#health-strip.show { display: flex; }
+@keyframes healthPulse { 50% { box-shadow: 0 0 14px rgba(244,63,94,.25);} }
+.src-dot { width: 26px; height: 20px; border-radius: 6px; background: var(--cyber-muted);
+  display:grid; place-items:center; font-size: 8px; color: var(--text-secondary); position: relative;}
+.src-dot::before { content:''; width: 6px; height: 6px; border-radius: 50%; margin-right:3px; }
+.src-dot.ok::after, .src-dot.warn::after, .src-dot.error::after {
+  content:''; position:absolute; top:2px; right:3px; width:5px;height:5px;border-radius:50%;
+}
+.src-dot.ok::after    { background: var(--success-neon); box-shadow: 0 0 5px var(--success-neon);}
+.src-dot.warn::after  { background: var(--warning-neon); box-shadow: 0 0 5px var(--warning-neon);}
+.src-dot.error::after { background: var(--error-neon);   box-shadow: 0 0 5px var(--error-neon);}
+
+/* 快速访问网格 (可拖拽重排 2列) */
+/* DashboardScreen.kt:312-313 horizontal 14.dp / vertical 18.dp */
+#quick-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 18px 14px;
+}
+/* DashboardScreen.kt:219-250 QuickLinkCard — 单行胶囊式小药丸：
+     Card.height(56.dp) / RoundedCornerShape(20.dp) / cardGradientBorder(20.dp)
+     Row.padding(14.dp) CenterVertically
+     ├ Box.size(32.dp).background(CyberMuted #27273B, RoundedCornerShape(8.dp))
+     │  └ Icon.size(16.dp)
+     ├ Spacer(12.dp)
+     └ Column [ Text 13.sp SemiBold / Text 11.sp ]
+   注：源码是 padding(14.dp) 全向，但 56 - 14*2 = 28 < 图标 32 → 32dp 图标会被裁 4px；
+   此处垂直内边距取 0 保留完整 32px 图标（横向仍 14px），高度与圆角严格照抄。 */
+.quick-card {
+  height: 56px; box-sizing: border-box;
+  border-radius: var(--radius-card);              /* 20.dp */
+  background: linear-gradient(135deg, var(--cyber-card-start), var(--cyber-card-end));
+  border: 1px solid rgba(167,139,250,.3);
+  box-shadow: 0 4px 16px var(--purple-glow);
+  padding: 0 14px;
+  cursor: pointer;
+  user-select: none;
+  transition: transform .18s ease, box-shadow .2s ease, border-color .2s;
+  display: flex; flex-direction: row; align-items: center; gap: 12px;  /* Spacer(12.dp) */
+  overflow: hidden;
+}
+.quick-card:hover { border-color: rgba(167,139,250,.6); box-shadow: 0 6px 22px var(--chart-glow); }
+.quick-card.dragging { opacity: .45; transform: scale(.96); }
+.quick-card.drag-over { border-color: var(--neon-cyan); box-shadow: 0 0 16px rgba(0,212,255,.35); }
+/* .quick-head 兼容层：渲染若仍用 <div class="quick-head"> 包裹 icon+text，布局等价 */
+.quick-head { display:flex; align-items:center; gap:12px; min-width:0; flex:1; }
+.quick-icon {
+  width: 32px; height: 32px; border-radius: 8px;   /* size(32.dp) / RoundedCornerShape(8.dp) */
+  background: var(--cyber-muted);                  /* CyberMuted #27273B */
+  border: none;
+  display:grid; place-items:center; flex:none;
+}
+.quick-icon svg, .quick-icon .cicon { width: 16px; height: 16px; display:block; }  /* Icon 16.dp */
+.quick-text { min-width:0; flex:1; display:flex; flex-direction:column; }
+.quick-title { font-size: 13px; font-weight: 600; color: var(--text-primary); }    /* 13.sp SemiBold */
+.quick-desc {
+  font-size: 11px; color: var(--text-secondary);                                   /* 11.sp */
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.drag-handle { margin-left:auto; font-size: 11px; color: var(--text-secondary); opacity:.55; cursor: grab;}
+
+/* 2×2 MetricCard 网格 */
+/* DashboardScreen.kt:334-335 horizontal 14.dp / vertical 18.dp */
+.metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 14px; }
+.metric-grid .cyber-card { margin-bottom: 0; }
+
+/* 子区块 (SWAP/ZRAM、电池温度子区) */
+.sub-block {
+  margin-top: 10px; padding-top: 10px;
+  border-top: 1px dashed rgba(76,29,149,.4);
+}
+.sub-label { font-size: 11px; color: var(--text-secondary); }
+.sub-value { font-size: 13px; font-weight: 600; color: var(--neon-cyan); font-family: var(--font-num);}
+
+/* FilterChip 行 */
+.chip-row { display: flex; gap: 8px; margin: 12px 0; }
+.filter-chip {
+  border-radius: 999px; border: 1px solid rgba(167,139,250,.35);
+  background: rgba(39,39,59,.6);
+  color: var(--text-secondary);
+  font-family: inherit; font-size: 12px; font-weight: 600;
+  padding: 6px 14px; cursor: pointer; transition: all .18s;
+}
+/* 电流校准：总开关关闭时控件禁用（源码 BatteryScreen.kt:768/787/801 的 enabled = enabled） */
+.filter-chip:disabled { opacity: .34; cursor: default; }
+.filter-chip:disabled:hover { background: rgba(39,39,59,.6); }
+.fancy-slider.is-disabled { opacity: .34; pointer-events: none; filter: grayscale(.65); }
+.filter-chip.selected {
+  background: rgba(124,58,237,.28);
+  border-color: var(--neon-purple-bright);
+  color: var(--neon-purple-pale);
+  box-shadow: 0 0 10px var(--purple-glow);
+}
+
+/* tag/chip（传感器唤醒/动态、power_save 等） */
+.tag {
+  display:inline-flex; align-items:center;
+  border-radius: 999px; padding: 2px 9px;
+  font-size: 10.5px; font-weight: 600; letter-spacing:.4px;
+}
+.tag.warn    { background: rgba(255,171,0,.14); color: var(--warning-neon); border: 1px solid rgba(255,171,0,.4);}
+.tag.success { background: rgba(52,199,89,.13); color: var(--success-neon); border: 1px solid rgba(52,199,89,.4);}
+.tag.purple  { background: rgba(124,58,237,.16); color: var(--neon-purple-bright); border: 1px solid rgba(167,139,250,.4);}
+.tag.cyan    { background: rgba(0,212,255,.12); color: var(--neon-cyan); border: 1px solid rgba(0,212,255,.4);}
+
+/* CPU 各核小卡 FlowRow */
+.core-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; }
+.core-item {
+  border-radius: 12px; border: 1px solid rgba(167,139,250,.25);
+  background: rgba(23,20,23,.66); padding: 8px 6px; text-align:center;
+}
+.core-name { font-size: 10px; color: var(--text-secondary); letter-spacing:.5px; }
+.core-freq { font-size: 12.5px; font-weight: 600; color: var(--neon-purple-bright); font-family: var(--font-num); margin-top:2px;}
+.cluster-card { padding: 10px; border-radius: 12px; background: rgba(124,58,237,.10); border:1px solid rgba(167,139,250,.3); margin-bottom: 8px; }
+
+/* C-States 颜色分级 (lvl≥2 紫 / lvl==1 青 / else 半紫) */
+.cs-bar-lvl2 { background: linear-gradient(90deg, var(--neon-purple), var(--neon-purple-bright)) !important; }
+.cs-bar-lvl1 { background: linear-gradient(90deg,#0891B2,var(--neon-cyan)) !important; }
+.cs-bar-default { background: rgba(124,58,237,.45) !important; }
+
+/* 卫星天空图 (SatelliteSkyView.kt:49-75)
+   Card 圆角 12.dp（非常规 20）+ Column padding 16.dp
+   标题 16.sp Bold；Canvas aspectRatio(1f) + padding 8.dp */
+.sky-card { border-radius: 12px; padding: 16px; }
+.sky-title { font-size: 16px; font-weight: 700; color: var(--text-primary); }
+.sky-plot {
+  width: 100%; aspect-ratio: 1; margin: 0 auto; display:block; padding: 8px;
+}
+/* GpsScreen.kt:145-152 SatelliteCard — 圆角 20.dp + padding 16.dp（独立 .cyber-card） */
+.sat-card {
+  display:flex; justify-content:space-between; align-items:center;
+  border-radius: 20px; border: 1px solid rgba(167,139,250,.25);
+  background: rgba(23,20,23,.6); padding: 16px; margin-bottom: 8px;
+}
+.sat-id { font-weight: 700; font-size: 13.5px; color: var(--text-primary); font-family: var(--font-num); }
+.sat-meta { font-size: 11.5px; color: var(--text-secondary); font-family: var(--font-num); }
+.sat-snr { font-size: 13px; font-weight: 700; font-family: var(--font-num); }
+
+/* SensorsScreen.kt:188-209 — 固定头部是单个 Row(fillMaxWidth, CenterVertically)：
+     标题 18.sp Bold Modifier.weight(1f)  |  SensorSearchField(widthIn(max=210.dp))
+   计数行 14.sp 在该 Row 之下另起一行（不在同一 Row 内）。
+   这里只做 Row 两端对齐容器；.search-box 的 radius:14px / max-width:210px 保持不变。 */
+.search-box-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.search-box-row > .screen-title,
+.search-box-row > h2,
+.search-box-row > .search-row-title { flex: 1; min-width: 0; }
+.search-box-row .search-box { margin-bottom: 0; flex: none; }
+
+/* 传感器搜索框 (霓虹玻璃) */
+.search-box {
+  display:flex; align-items:center; gap:8px;
+  border-radius: 14px;                    /* SensorsScreen.kt:331 RoundedCornerShape(14.dp) */
+  max-width: 210px;                       /* SensorsScreen.kt:312 widthIn(max = 210.dp) */
+  background: linear-gradient(135deg, rgba(39,39,59,.7), rgba(69,27,69,.45));
+  border: 1px solid rgba(167,139,250,.4);
+  box-shadow: inset 0 0 12px rgba(124,58,237,.12), 0 0 14px var(--purple-glow);
+  padding: 11px 14px;
+  margin-bottom: 12px;
+}
+.search-box input {
+  flex:1; background:transparent; border:none; outline:none;
+  color: var(--text-primary); font-family: inherit; font-size: 13.5px; letter-spacing:.4px;
+}
+.search-box input::placeholder { color: rgba(148,163,184,.55); }
+.sensor-card {
+  border-radius: 16px; border: 1px solid rgba(167,139,250,.26);
+  background: linear-gradient(135deg, var(--cyber-card-start), rgba(69,27,69,.55));
+  padding: 13px 14px; margin-bottom: 18px; cursor:pointer;   /* SensorsScreen.kt:250 spacedBy(18.dp) */
+  transition: transform .16s ease, border-color .18s;
+}
+.sensor-card:hover { border-color: rgba(167,139,250,.55); }
+/* SensorsScreen.kt:363-374 — scale 微弹 (1.04, 180ms 上 / 420ms 回) + glow 辉光淡出 (600ms) */
+.sensor-card.pulse {
+  animation: sensorPulse .6s cubic-bezier(.3,.7,.4,1), sensorGlow .6s ease-out;
+  border-color: var(--neon-cyan);
+}
+@keyframes sensorPulse { 0%{transform:scale(1);} 30%{transform:scale(1.04);} 100%{transform:scale(1);} }
+@keyframes sensorGlow {
+  0%   { box-shadow: 0 0 0 0 rgba(0,212,255,0), 0 0 0 rgba(0,212,255,0); }
+  30%  { box-shadow: 0 0 0 8px rgba(0,212,255,.14), 0 0 22px rgba(0,212,255,.3); }
+  100% { box-shadow: 0 0 0 0 rgba(0,212,255,0), 0 0 0 rgba(0,212,255,0); }
+}
+.sensor-title { font-size: 15px; font-weight: 600; color: var(--text-primary); display:flex; align-items:center; gap:6px;}
+.sensor-vendor { font-size: 13px; color: var(--text-secondary); margin-top:2px;}
+.sensor-range { font-size: 12px; color: var(--text-secondary); margin-top: 6px; font-family: var(--font-num);}
+
+/* FloatingWindow 预览悬浮球 (SYSTEM_ALERT_WINDOW 替身, 限定在手机屏内) */
+#float-ball {
+  position: absolute; z-index: 60;
+  left: 16px; top: 200px;
+  padding: 7px 10px;
+  border-radius: 12px;
+  background: rgba(220,10,10,.09);
+  backdrop-filter: blur(3px);
+  border: 1px solid rgba(160,92,255,.3);
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: none;
+  display: none;
+  flex-direction: column; gap: 1px;
+  box-shadow: 0 4px 18px rgba(0,0,0,.55);
+}
+#float-ball.show { display: flex; }
+/* 覆盖层打开时隐藏悬浮球：z-index 60 高于 .overlay(30)，会盖住覆盖层内的
+   滑块/开关等控件（实测挡住悬浮窗设置的「刷新频率」滑块，pointer 命中 OUT）。
+   对应 Android 真机行为 —— FloatingWindowScreen 是全屏不透明 Activity，
+   悬浮窗窗口虽在系统层但视觉上被盖住，不可交互。 */
+#phone:has(.overlay.active) #float-ball { display: none !important; }
+.float-line { font-size: 11px; line-height: 1.45; font-family: var(--font-num); letter-spacing:.3px;
+  color: #00D4FF; white-space: pre; }
+
+/* FancySlider — 厚胶囊轨道 + 设置齿轮图标旋转 thumb (对齐 FancySlider.kt)
+   ⚠ touch-action:none 必需：滑块的祖先 .overlay-content 是 overflow-y:auto 滚动容器，
+     touch-action:auto 时触屏/触摸板/触控笔的水平拖动会被浏览器判为滚动手势并派发
+     pointercancel，导致 dragging 提前中断（表现为"滑块拉不动"）。鼠标指针不受此
+     限制，故用 mouse 模拟的探针测不出该缺陷。 */
+.fancy-slider {
+  position: relative; flex:1; height: 38px; display:flex; align-items:center; cursor: pointer;
+  touch-action: none;
+  -webkit-user-select: none; user-select: none;
+}
+.fancy-slider .rail { position:absolute; left:0; right:0; height:38px; border-radius:19px;
+  background: rgba(61,112,184,.30); border:2px solid rgba(124,58,237,.30); }  /* FancySlider.kt:101 stroke = 2.dp */
+.fancy-slider .fill { position:absolute; left:0; height:38px; border-radius:19px;
+  background: var(--neon-magenta-purple); box-shadow: 0 0 10px rgba(217,70,239,.55);}
+/* FancySlider.kt:113-128 — thumb 是 48.dp 透明触控盒，内部只有 Icon(26.dp, White)
+   + offset(x = -13px) + rotationZ，没有白球底 */
+.fancy-slider .thumb {
+  position:absolute; width: 48px; height:48px;
+  background: none; border: none; box-shadow: none;
+  transform: translateX(-50%);
+  display:grid; place-items:center;
+}
+.fancy-slider .thumb .gear {
+  width:26px; height:26px; color:#fff; margin-left:-13px;   /* iconSize 26.dp / offset x = -13px */
+  transition: transform .08s linear;
+}
+.fancy-slider .thumb .gear svg { width:100%; height:100%; display:block; }
+
+/* 开关 — CyberJoystickSwitch 赛博摇杆式 (斜切平行四边形轨道 + 弧线拇指 + 3D 倾斜 + 光晕拖尾)
+   几何 (CyberJoystickSwitch.kt:122-129, 轨道 52×32):
+     skewPx       = 32 * 0.15  = 4.8
+     thumbR       = 32 * 0.40  = 12.8      → 直径 25.6
+     thumbStartX  = skewPx*0.5 + thumbR*1.1 = 16.48  → 拇指左缘 16.48 - 12.8 = 3.68
+     thumbEndX    = 52 - 2.4 - 14.08      = 35.52   → 拇指左缘 35.52 - 12.8 = 22.72
+     markR        = 32 * 0.06  = 1.92；左心 2.4+3.84 = 6.24，右心 52-2.4-3.84 = 45.76 */
+.switch {
+  --track-a: rgba(61,112,184,.45);
+  --track-b: rgba(61,112,184,.25);   /* :274-277 关态 .45 / .25 / .45 */
+  --mark-l: rgba(61,112,184,.175);   /* 关态左标记: unchecked(α.35) × 0.5 */
+  --mark-r: rgba(194,24,91,0);       /* 右标记: checked × 0.5 × progress */
+  /* touch-action:none —— 开关支持水平拖拽（CyberJoystickSwitch.kt:145-176），
+     与滑块同理，不加会在触屏/触摸板下被滚动手势抢走 pointer 流 */
+  position:relative; width:52px; height:32px; flex:none;
+  touch-action: none;
+  -webkit-user-select: none; user-select: none;
+  border-radius:5px; cursor:pointer;
+  /* T4 方向标记点 / T2 内阴影(顶 黑 .12 / 底 黑 .06) / T1 轨道底色 */
+  background:
+    radial-gradient(circle 1.92px at 6.24px 50%,   var(--mark-l) 99%, transparent 100%),
+    radial-gradient(circle 1.92px at 45.76px 50%,  var(--mark-r) 99%, transparent 100%),
+    linear-gradient(180deg, rgba(0,0,0,.12), rgba(0,0,0,0) 45%, rgba(0,0,0,.06)),
+    linear-gradient(120deg, var(--track-a), var(--track-b), var(--track-a));
+  border:1px solid rgba(61,112,184,.5);
+  transform: skewX(-9deg);
+  transition: background .25s ease, box-shadow .25s;
+}
+/* :134 defaultMinSize(minHeight = 48.dp) — 48dp 触控热区（透明，不撑开视觉轨道） */
+.switch::before {
+  content:''; position:absolute; left:0; right:0; top:-8px; bottom:-8px;
+}
+.switch .knob {
+  position:absolute; top:3.2px; left:3.7px; width:25.6px; height:25.6px; border-radius:50%;
+  background: radial-gradient(circle at 35% 30%, #cfe0ff, #6f8fd0 72%);
+  box-shadow: 0 1px 3px rgba(0,0,0,.4);
+  transform: skewX(9deg);
+  transition: left .28s cubic-bezier(.3,.7,.3,1.2), transform .28s ease, background .25s, box-shadow .25s;
+}
+/* 光晕拖尾 (CyberJoystickSwitch.kt:194-216)
+   alpha = sin(pπ) * 0.35 → 两端为 0、中途峰值；strokeWidth = thumbR*0.6 = 7.68px
+   长度 = thumbR*1.5 = 19.2px，起点自 ON 态拇指中心 35.5px 向左 */
+.switch::after {
+  content:''; position:absolute; top:50%; height:7.68px; width:19.2px; left:16.3px; border-radius:3.84px;
+  background: linear-gradient(90deg, rgba(217,70,239,.35), transparent);
+  transform: skewX(9deg) translateY(-50%); opacity:0;
+  pointer-events:none;
+}
+.switch.on {
+  --track-a: rgba(194,24,91,.6);
+  --track-b: rgba(194,24,91,.38);
+  --mark-l: rgba(61,112,184,0);
+  --mark-r: rgba(194,24,91,.5);
+  border-color: rgba(217,70,239,.6); box-shadow: 0 0 14px rgba(194,24,91,.55);
+}
+.switch.on .knob { left:22.7px; background: radial-gradient(circle at 35% 30%, #ff9cc8, #c2185b 72%);
+  transform: skewX(9deg) translateY(-4px) rotate(-8deg);   /* arcHeight = 4.dp */
+  box-shadow: 0 0 12px rgba(255,143,196,.9); }
+.switch.on::after { animation: switchTrail .28s cubic-bezier(.3,.7,.3,1.2); }
+@keyframes switchTrail { 0%{opacity:0;} 50%{opacity:1;} 100%{opacity:0;} }
+.switch:active { transform: skewX(-9deg) scale(.9); }        /* :110-117 pressScale 0.9 */
+/* pink 变体：轨道色与 .switch.on 一致，仅加强外发光 */
+.switch.pink.on { box-shadow: 0 0 16px rgba(194,24,91,.6); }
+
+/* 设置行 */
+.settings-row {
+  display:flex; align-items:center; justify-content: space-between; gap: 12px;
+  padding: 10px 0;
+}
+.settings-divider { border-top:1px dashed rgba(76,29,149,.4); }
+
+/* Segmented (Per cluster / Per core) 复用 filter-chip */
+
+/* ============================================================
+ * 覆盖层 Overlay
+ *  ① showSettings/showFloatConfig → 圆形水波纹展开 (clip-path circle)
+ *  ② SensorDetail/HdrLab → 中心缩放 0.3→1.0 + scrim 二次曲线(alpha=p²·0.22)
+ *     内容淡入上移 24dp
+ * ============================================================ */
+.overlay {
+  position:absolute; inset:0; z-index: 30;
+  display:none;
+}
+.overlay.active { display:block; }
+
+/* MainActivity.kt:231-232 — 进 tween(550) / 出 tween(450) / FastOutSlowInEasing
+   ≈ cubic-bezier(0.4, 0.0, 0.2, 1) */
+/* ── ② 缩放类覆盖层 (MainActivity.kt:705-726) ──
+   容器层：scale = 0.3 + 0.7·p，TransformOrigin(0.5f, 0.5f) 中心锚点。
+   容器背景 CyberCardStart 的 alpha = ((scrim-0.6)/0.4)·0.92 →
+   进度 0.6 之前完全不可见，0.6→1.0 渐显到峰值 0.92（本层 opacity 动画近似该曲线）。
+   内容层：alpha = ((p-0.25)/0.75).clamp(0,1) → 25% 之前恒为 0；
+           translationY = (1 - alpha) * 24.dp。scale 只由容器层承载。 */
+.overlay.scrim-scale {
+  animation: overlayRevealIn .55s cubic-bezier(.4,0,.2,1) both;
+  transform-origin: 50% 50%;
+}
+@keyframes overlayRevealIn {
+  0%   { opacity: 0; transform: scale(.3) translateY(24px); }
+  25%  { opacity: 0; transform: scale(.3) translateY(24px); }  /* 25% 前 α 恒为 0 */
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+.overlay.scrim-scale .overlay-body {
+  animation: overlayBodyIn .55s cubic-bezier(.4,0,.2,1) both;
+}
+@keyframes overlayBodyIn {
+  0%   { transform: translateY(24px); opacity: 0; }
+  25%  { transform: translateY(24px); opacity: 0; }
+  100% { transform: none; opacity: 1; }
+}
+
+/* 退出：tween(450) FastOutSlowInEasing，容器与内容同向回退到起始态。
+   注意必须限定 .scrim-scale —— .wave 覆盖层（设置/悬浮窗）退出走 clip-path 圆形收缩，
+   若在此处用全局 .overlay.closing 会把水波纹收缩变成整屏缩放。 */
+.overlay.scrim-scale.closing {
+  animation: overlayRevealOut .45s cubic-bezier(.4,0,.2,1) both;
+}
+@keyframes overlayRevealOut {
+  0%   { opacity: 1; transform: scale(1) translateY(0); }
+  100% { opacity: 0; transform: scale(.3) translateY(24px); }
+}
+.overlay.scrim-scale.closing .overlay-body {
+  animation: overlayBodyOut .45s cubic-bezier(.4,0,.2,1) both;
+}
+@keyframes overlayBodyOut {
+  0%   { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(24px); }
+}
+.overlay.wave.closing .overlay-content { animation: fadeOut .45s both !important; }
+@keyframes fadeOut { to {opacity:0;} }
+
+/* MainActivity.kt:696-699 — 纯黑平铺，alpha = scrim² × 0.22（最大 0.22）
+   逐帧 opacity 由 app.js 写入；此处给出静止态上限值作为兜底 */
+.overlay-bg {
+  position:absolute; inset:0;
+  background: #000;
+  opacity: .22;
+}
+.overlay-body { position:absolute; inset:0; overflow:hidden; }
+.overlay-content {
+  position:absolute; inset:0;
+  overflow-y:auto; overscroll-behavior:contain;
+  padding: 16px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--divider-cyber) transparent;
+}
+.back-btn {
+  position: sticky; top: 0;
+  width: 40px; height:40px; margin-left:-6px; margin-bottom:4px;
+  border-radius: 50%;
+  border: 1px solid rgba(167,139,250,.4);
+  background: linear-gradient(135deg, rgba(39,39,59,.9), rgba(124,58,237,.18));
+  color: var(--neon-purple-bright); font-size: 17px;
+  display:grid; place-items:center; cursor:pointer; z-index:2;
+}
+.back-btn:hover { box-shadow: 0 0 14px var(--purple-glow-strong); }
+
+/* ══════════════════════════════════════════════════════════════
+   覆盖层顶部返回圆钮 — LightCircleBackButton
+   (ui/components/GlowBackButton.kt:99 签名 / :378-479 drawFrostedGlassV3)
+   4 个覆盖层（设置 / 悬浮窗 / 传感器详情 / HDR 实验室）共用，通用类。
+   几何取自实际调用点，全部为 btnSize = 48.dp + TopStart + (top 8, start 16)：
+     MainActivity.kt:581 设置 / :606 悬浮窗 / :666 HDR
+     SensorDetailScreen.kt:211 传感器详情
+   图标 iconSize = btnSize * 0.44 = 48 * 0.44 = 21.12dp (GlowBackButton.kt:279)
+   ───────────────────────────────────────────────────────────
+   L0 内凹阴影(黑 .14 / .04) / L1 基面 #F2F6FA@.34
+   L2 左上主光斑 #EAF3FB .52→.18 / L3 右侧补光 白@.18 / L4 冷白叠加 #FAFCFF@.07
+   L5 顶部镜面弧 #E8F4FC@.30 / L6 rim light 白 .60→.32 上、.14 下
+   L7 底部暗角弧 黑 .08 / L8 底部黑托底 黑 .55→.20→透明
+   ══════════════════════════════════════════════════════════════ */
+/* 返回按钮容器 — 透明热区，只负责接收指针事件与定位。
+   9 层玻璃在 .gbb-glass（受果冻形变），图标在 .gbb-icon（只跟随位移、不被拉伸）。
+   源码 GlowBackButton.kt:264-300 明确要求「图标层移到旋转层之外，箭头不旋转、
+   不被各向异性拉伸」，故两者必须分层。 */
+.glow-back-btn {
+  position: absolute; top: 8px; left: 16px;
+  width: 48px; height: 48px; flex: none;
+  z-index: 30;                      /* 高于 .overlay-bg / .overlay-body */
+  border: none; padding: 0;
+  background: none; box-shadow: none;
+  border-radius: 50%;
+  color: rgba(26,26,46,.85);        /* 浅底 → 深图标 (MainActivity.kt:869/882 #1A1A2E @ .85) */
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;               /* 支持拖拽形变，禁止被滚动手势抢走 pointer 流 */
+  -webkit-user-select: none; user-select: none;
+}
+.glow-back-btn * { pointer-events: none; }
+
+/* ① 果冻形变层 — 9 层浅色冷调毛玻璃 (GlowBackButton.kt:378-479 drawFrostedGlassV3)
+   由 JS 写入 --sx/--sy/--tx/--ty/--ga 驱动非对称拉伸 + tanh 饱和位移 + 取消态淡出 */
+.glow-back-btn > .gbb-glass {
+  position: absolute; inset: 0;
+  border-radius: 50%;
+  /* L8 底部黑托底 / L5 顶部镜面弧 / L3 右侧补光 / L2 左上主光斑 / L4 冷白叠加 / L1 基面 */
+  background:
+    radial-gradient(circle at 50% 82%, rgba(0,0,0,.55) 0%, rgba(0,0,0,.20) 40%, transparent 70%),
+    radial-gradient(circle at 50% 6%,  rgba(232,244,252,.30) 0%, transparent 45%),
+    radial-gradient(circle at 72% 60%, rgba(255,255,255,.18) 0%, transparent 42%),
+    radial-gradient(circle at 28% 26%, rgba(234,243,251,.52) 0%, rgba(234,243,251,.18) 45%, transparent 74%),
+    linear-gradient(rgba(250,252,255,.07), rgba(250,252,255,.07)),
+    rgba(242,246,250,.34);
+  /* L6 rim light(上 .60 / 下 .14) + L7 底部暗角 + L8 托底 + L0 内凹阴影 + 外投影 */
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.60),
+    inset 0 -1px 0 rgba(255,255,255,.14),
+    inset 0 -3px 6px rgba(0,0,0,.08),
+    inset 0 -2px 8px rgba(0,0,0,.55),
+    inset 0 0 0 2.8px rgba(0,0,0,.14),
+    0 2px 4px rgba(0,0,0,.25);
+  transform:
+    translate(var(--tx, 0px), var(--ty, 0px))
+    scale(var(--sx, 1), var(--sy, 1));
+  opacity: var(--ga, 1);
+  transition: transform .18s cubic-bezier(.34,1.56,.64,1), opacity .1s ease-out;
+}
+.glow-back-btn.dragging > .gbb-glass { transition: none; }   /* 拖拽中逐帧跟随，不插值 */
+
+/* ② 图标层 — 在形变层之外，只跟随 dragTx/dragTy 平移，永不拉伸/旋转
+   三层错位绘制模拟 soft-focus 景深 (GlowBackButton.kt:277-300) */
+.glow-back-btn > .gbb-icon {
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  transform: translate(var(--tx, 0px), var(--ty, 0px));
+  opacity: var(--ga, 1);
+  transition: transform .18s cubic-bezier(.34,1.56,.64,1), opacity .1s ease-out;
+}
+.glow-back-btn.dragging > .gbb-icon { transition: none; }
+
+.glow-back-btn > .gbb-icon > svg {
+  position: absolute;
+  color: #1A1A2E;
+  overflow: visible;
+}
+/* L1 底层大幅模糊光晕：size × 1.40，α = iconAlpha × 0.14，偏移 (0.8, 0.8) */
+.gbb-icon > .gbb-l1 { width: 29.57px; height: 29.57px; opacity: .14; transform: translate(.8px, .8px); }
+/* L2 中层轻微模糊：size × 1.12，α = iconAlpha × 0.30，偏移 (0.4, 0.4) */
+.gbb-icon > .gbb-l2 { width: 23.65px; height: 23.65px; opacity: .30; transform: translate(.4px, .4px); }
+/* L3 顶层清晰：size × 1.00，α = iconAlpha（由 --ia 逐帧驱动） */
+.gbb-icon > .gbb-l3 { width: 21.12px; height: 21.12px; opacity: var(--ia, .95); }
+.gbb-icon > svg path { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; }
+.gbb-icon > svg .p0 { stroke-width: 1.8; }   /* 箭头棱面 */
+.gbb-icon > svg .p1 { stroke-width: 1.5; }   /* 尾杆 */
+.gbb-icon > svg .p2 { stroke-width: 1.2; }   /* 箭头内部棱面线 */
+
+/* 设置/悬浮窗圆形水波纹展开
+   半径全部由 CSS 定义（0% → 142% → 0%）；圆心由 JS 写入 --ox/--oy（showWave），
+   不再有 inline clip-path 覆盖，避免两套半径（142% vs 150%）互相打架 */
+.overlay.wave {
+  clip-path: circle(0% at var(--ox, calc(100% - 54px)) var(--oy, 82px));
+  transition: clip-path .5s cubic-bezier(.3,.7,.3,1);
+}
+.overlay.wave.open { clip-path: circle(142% at var(--ox, calc(100% - 54px)) var(--oy, 82px)); }
+.overlay.wave.closing { clip-path: circle(0% at var(--ox, calc(100% - 54px)) var(--oy, 82px)); }
+
+/* HDR 全屏验证层 */
+#fullscreen-hdr {
+  position:absolute; inset:0; z-index: 50; display:none;
+  background: repeating-linear-gradient(
+    45deg,
+    #180d18 0 64px, #120a12 64px 128px);
+}
+#fullscreen-hdr.show { display:flex; flex-direction:column; }
+.fs-hdr-pad {
+  position:absolute; left:0; top:0; bottom:0; right:0;
+  background: linear-gradient(115deg, rgba(124,58,237,.28), rgba(217,70,239,.24) 55%, rgba(0,212,255,.2));
+  mix-blend-mode: screen;
+  animation: fsHdrBreath 2.2s ease-in-out infinite;
+}
+@keyframes fsHdrBreath { 50% { filter: brightness(1.55); } }
+
+/* Toast */
+#toast {
+  position:absolute; left:50%; bottom: 86px; transform: translateX(-50%) translateY(8px);
+  background: rgba(30,28,53,.95);
+  border: 1px solid rgba(167,139,250,.45);
+  color: var(--text-primary);
+  font-size: 12.5px; letter-spacing:.4px;
+  padding: 9px 18px; border-radius: 999px;
+  opacity: 0; pointer-events:none; transition: all .25s ease;
+  z-index: 80; white-space: nowrap;
+}
+#toast.show { opacity:1; transform: translateX(-50%); }
+
+/* ============================================================
+ * 交互增强（对齐源码交互层）：
+ * cardRipple / 快速访问拖拽 / FancySlider 拖动辉光 /
+ * 夜光条 NightlightBarSwitch / 全局光照 GlobalLight
+ * ============================================================ */
+
+/* Material3 原生 Ripple 直译：clip 圆角 + inset 4dp 内缩 */
+.rip {
+  position:absolute; border-radius:50%;
+  background: radial-gradient(circle, rgba(167,139,250,.38) 0%, rgba(124,58,237,.22) 45%, transparent 70%);
+  transform: scale(0); opacity: 1;
+  animation: ripGrow .55s cubic-bezier(.2,.6,.35,1) forwards;
+  pointer-events:none;
+}
+@keyframes ripGrow { to { transform: scale(1); opacity: 0; } }
+.has-ripple { position:relative; overflow:hidden; }
+/* 波纹裁剪内缩（cardRipple inset=4dp）：在卡片自身 padding 层盖一层 clip 容器 */
+.cyber-card .rip, .quick-card .rip { z-index: 0; }
+.cyber-card > *, .quick-card > * { position:relative; z-index:1; }
+
+/* FancySlider 拖动态：thumb 放大发光 */
+/* 拖动态只放大触控盒，无白球故无光晕 */
+.fancy-slider.dragging .thumb { transform: translateX(-50%) scale(1.28); box-shadow: none; }
+.fancy-slider .fill, .fancy-slider .thumb { transition: width .12s linear, left .12s linear, transform .15s ease; }
+
+/* 夜光条 NightlightBarSwitch — 全屏边缘霓虹长条（对齐 CyberNightlightHost 全屏边缘闪光） */
+#night-bar {
+  display:none; position:absolute; inset:0; z-index:55; pointer-events:none;
+  border-radius: 26px;
+  --nb: calc(.30 + var(--xdr, 0) * .70);
+  box-shadow:
+    inset 0 0 calc(18px + var(--xdr,0)*22px) rgba(124,58,237, calc(.35 + var(--xdr,0)*.45)),
+    inset 0 0 calc(40px + var(--xdr,0)*40px) rgba(217,70,239, calc(.18 + var(--xdr,0)*.34));
+  animation: barBreath 2.6s ease-in-out infinite;
+}
+/* 旋转的扫光描边（仅边缘圆环可见，内部镂空） */
+#night-bar::before {
+  content:''; position:absolute; inset:0; border-radius:inherit; padding:3px;
+  background: conic-gradient(from 0deg,
+    transparent 0deg,
+    rgba(0,212,255,var(--nb)) 70deg,
+    rgba(178,102,255,var(--nb)) 140deg,
+    rgba(217,70,239,var(--nb)) 210deg,
+    transparent 300deg);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask-composite: exclude;
+  animation: nbSpin 5s linear infinite, barBreath 2.6s ease-in-out infinite;
+}
+#night-bar.show { display:block; }
+/* 切 Tab 时的一次性边缘闪光 */
+#night-bar.flash { animation: nbFlash .7s ease-out; }
+#night-bar.flash::before { animation: nbSpin 5s linear infinite, nbFlash .7s ease-out; }
+@keyframes barBreath { 50% { opacity:.72; } }
+@keyframes nbSpin { to { transform: rotate(360deg); } }
+@keyframes nbFlash {
+  0%   { filter: brightness(2.4); }
+  100% { filter: brightness(1); }
+}
+
+/* 全局光照 — 固定软件背景光晕 (AppGlowBackground 等效，始终渲染一次) */
+#phone::before {
+  content:''; position:absolute; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(900px 900px at 85% 90%, rgba(85,153,204,.07), transparent 60%),
+    radial-gradient(760px 760px at 15% 12%, rgba(85,153,204,.045), transparent 60%),
+    radial-gradient(620px 620px at 92% 93%, rgba(85,153,204,.11), transparent 55%);
+  mix-blend-mode: screen;
+}
+/* 全局光照 GlobalLightState — 环境紫光呼吸罩（开启全局光照时显示） */
+#global-light-veil {
+  display:none; position:absolute; inset:0; pointer-events:none; z-index:58;
+  background:
+    radial-gradient(560px 380px at 28% 12%, rgba(124,58,237,.16), transparent 62%),
+    radial-gradient(480px 340px at 78% 88%, rgba(216,180,254,.10), transparent 60%);
+  mix-blend-mode: screen;
+  animation: veilBreath 4.5s ease-in-out infinite;
+}
+#phone.glow-on #global-light-veil { display:block; }
+@keyframes veilBreath { 50% { opacity:.66; } }
+
+/* 指针跟随的卡片揭示光（Windows 10 Reveal Light 等效，glow-on 时由 JS 写入 --lx/--ly/--lint） */
+@property --lint { syntax: '<number>'; inherits: true; initial-value: 0; }
+/* --lint 的写入发生在卡片自身（app.js setupGlobalLight），已注册自定义属性只在其值
+   发生改变的那个元素上过渡；写在 ::after 上是死声明（伪元素只继承已翻转完的值）→ 硬跳 */
+.quick-card { transition: --lint .4s ease; }
+/* RevealLightModifier.kt:44-46 + InfoCard.kt:50/98 — radius 160.dp, intensity 0.22f,
+   lightColor = NeonPurple #7C3AED（非亮紫 #B266FF） */
+.cyber-card::after, .quick-card::after {
+  content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+  z-index:3; mix-blend-mode: screen; opacity: calc(var(--lint, 0) * 3);
+  background: radial-gradient(circle var(--reveal-r-card) at var(--lx, 50%) var(--ly, 50%),
+     rgba(124,58,237, calc(var(--lint, 0) * .34)), rgba(124,58,237, 0) 72%);
+}
+/* MainActivity.kt:786 头部 revealLight(radius = 200.dp, intensity = 0.15f)
+   → 半径 --reveal-r-header；强度 0.15 相对卡片 0.22 折减 (0.34 * 0.15/0.22 ≈ .23) */
+#pill-header::after {
+  content:''; position:absolute; inset:0; border-radius:26px; pointer-events:none;
+  z-index:2; mix-blend-mode: screen; opacity: calc(var(--lint, 0) * 3);
+  background: radial-gradient(circle var(--reveal-r-header) at var(--lx, 50%) var(--ly, 50%),
+     rgba(124,58,237, calc(var(--lint, 0) * .23)), rgba(124,58,237, 0) 72%);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+ * CyberNightlight TurboXDR — 局部 HDR 增亮（仅高亮元素发光，不抬升整屏亮度）
+ *   亮度倍率由 --xdr (0..1 = 强度 1.0×..8.0×) 线性驱动
+ * ═══════════════════════════════════════════════════════════════ */
+#phone.xdr-on { --xdr: 0; }
+/* 卡片描边本体增亮（白细高光 + 紫/青 bloom，不改动卡片底色） */
+#phone.xdr-on .cyber-card {
+  box-shadow:
+    0 0 calc(10px + var(--xdr) * 24px) rgba(178,102,255, calc(.22 + var(--xdr) * .60)),
+    0 0 calc(4px + var(--xdr) * 12px) rgba(0,212,255, calc(.12 + var(--xdr) * .42)),
+    0 6px 22px var(--purple-glow);
+}
+/* 大数字 / 标题 / 标签：仅文字发光，不抬底 */
+#phone.xdr-on .metric-value,
+#phone.xdr-on .info-title,
+#phone.xdr-on .metric-label,
+#phone.xdr-on .info-subtitle {
+  text-shadow: 0 0 calc(5px + var(--xdr) * 14px) rgba(178,102,255, calc(.35 + var(--xdr) * .50));
+  filter: brightness(calc(1 + var(--xdr) * .45));
+}
+/* 图标本体（内容区/顶部 Tab） */
+#phone.xdr-on .info-icon-wrap svg,
+#phone.xdr-on .cicon,
+#phone.xdr-on .tab-item .cicon {
+  filter: brightness(calc(1 + var(--xdr) * .60)) drop-shadow(0 0 calc(4px + var(--xdr) * 10px) rgba(178,102,255, calc(.30 + var(--xdr) * .50)));
+}
+/* 折线/网格 canvas：仅线条 bloom */
+#phone.xdr-on canvas { filter: drop-shadow(0 0 calc(3px + var(--xdr) * 9px) rgba(0,212,255, calc(.28 + var(--xdr) * .50))); }
+/* 选中 Tab 指示条增强 */
+#phone.xdr-on .tab-item.active::after { box-shadow: 0 0 calc(8px + var(--xdr) * 14px) var(--neon-purple); }
+
+/* 语言选择 Dialog（Material3 ElevatedCard 近似） */
+.lang-dialog-mask {
+  position:absolute; inset:0; z-index:40; background:rgba(10,10,15,.55);
+  display:grid; place-items:center; animation: dialogFadeIn .25s ease both;
+}
+@keyframes dialogFadeIn { from { opacity:0; } to { opacity:1; } }
+.lang-dialog {
+  width: min(300px, 84%);
+  border-radius: 24px;
+  background: linear-gradient(160deg, #18182A 0%, #221430 100%);
+  border:1px solid rgba(167,139,250,.4);
+  box-shadow: 0 18px 44px rgba(0,0,0,.6), 0 0 26px var(--purple-glow);
+  overflow:hidden;
+}
+.lang-dialog-head { padding: 16px 18px 10px; font-size:15px; font-weight:700; }
+.lang-option {
+  padding: 13px 18px; font-size: 13.5px; cursor:pointer;
+  display:flex; justify-content:space-between; align-items:center;
+  transition: background .15s ease;
+}
+.lang-option:hover { background: rgba(124,58,237,.16); }
+.lang-option.current { color: var(--neon-purple-bright); font-weight:600; }
+
+/* 悬浮窗设置齿轮双钮 icon 基线 */
+.glass-circle-btn .cicon { pointer-events:none; }
+
+/* 全屏 HDR 点亮后的强度提升 */
+#fullscreen-hdr.lit .fs-hdr-pad { animation-duration: 1.1s; filter: brightness(2.1) saturate(1.25); }
+
+/* 快速访问/指标卡拖拽排序时的自动占位提示 */
+.grid-reorder-hint { outline: 1.5px dashed rgba(167,139,250,.45); outline-offset:-6px; border-radius: 20px !important; }
+
+/* 小屏适配 */
+@media (max-width: 380px) {
+  .metric-grid { grid-template-columns: 1fr; }
+}
+
+/* ============================================================
+ * 多栏自适应 —— 默认关闭，仅在 #phone[data-layout="adaptive"] 下生效
+ *
+ * ⚠️ 源码分支**未**实现自适应：无 WindowSizeClass / calculateWindowSizeClass /
+ *   ListDetailPaneScaffold / NavigationSuite，也无 res/values-sw600dp 限定符，
+ *   BoxWithConstraints 仅用于 DashboardScreen 的高度约束 workaround，
+ *   SensorDetailContent 是全屏覆盖层（SensorDetailScreen.kt:51）。
+ *
+ *   因此默认（data-layout="portrait"）必须是原生形态：竖屏单栏，
+ *   药丸头部内含 Tab 栏 + NeonDivider + Pager。桌面浏览器一打开就渲染成
+ *   「左侧 Rail + 内容 + 传感器双栏」是源码不存在的形态，已降级为显式开关：
+ *   app.js 读 localStorage['cw-layout-mode']（'portrait' | 'adaptive'，默认
+ *   'portrait'）并写到 #phone[data-layout]，本节所有选择器都以此为前缀。
+ *
+ *   断点（仅在 adaptive 下有意义）：medium 600–839dp / expanded ≥840dp / 电视式 ≥1240dp
+ * ============================================================ */
+:root {
+  --rail-w: 96px;        /* Navigation Rail 宽度 */
+  --pane-w: 46%;         /* list-detail 详情面板宽度 */
+  --grid-cols: 2;        /* 卡片栅格列数 */
+  --content-pad: 16px;
+  --app-max-w: 412px;
+  --app-max-h: 892px;
+}
+
+/* ── 紧凑档（默认 portrait）：药丸头(Tab 在内) → NeonDivider → 内容 ── */
+#phone {
+  display: grid;
+  grid-template-areas: "header" "divider" "main";
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr);
+  width: min(var(--app-max-w), 100vw);
+  height: min(var(--app-max-h), 100vh);
+}
+#pager       { grid-area: main; min-height: 0; }
+.tab-item    { display: inline-flex; align-items: center; gap: 5px; }
+
+/* ── Medium 600–839dp：平板竖屏 / 中等窗口（仅 adaptive） ── */
+@media (min-width: 600px) {
+  #phone[data-layout="adaptive"] { --app-max-w: 720px; --grid-cols: 3; --content-pad: 18px; }
+  #phone[data-layout="adaptive"] .metric-grid { grid-template-columns: repeat(var(--grid-cols), minmax(0, 1fr)); }
+}
+
+/* ── Expanded ≥840dp（仅 adaptive）：加宽机身 + 更多栅格列 + 传感器 list-detail 双栏 ──
+   注：任务 1 后 #tab-row 已移入 #pill-header（源码形态），不再是 #phone 的网格区域，
+   故原「左侧 Navigation Rail」形态无法再成立 —— 它是纯 web 发明、源码里并不存在。
+   adaptive 档改为：机身加宽 + 卡片栅格多列 + 传感器详情停靠为右侧面板。 */
+@media (min-width: 840px) {
+  #phone[data-layout="adaptive"] { --app-max-w: 1140px; --grid-cols: 3; --content-pad: 20px; }
+  #phone[data-layout="adaptive"] {
+    grid-template-areas: "header" "divider" "main";
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr);
+  }
+  #phone[data-layout="adaptive"] .metric-grid { grid-template-columns: repeat(var(--grid-cols), minmax(0, 1fr)); }
+
+  /* 详情面板停靠为右侧栏（传感器详情 + HDR 实验室共用）。
+     复用全屏覆盖层的 DOM 与渲染逻辑，仅改定位与入场动画 —— 低风险。
+     绝对定位 + grid-area 使包含块落在该网格区域内，无需硬编码头部高度。 */
+  #phone[data-layout="adaptive"] #overlay-sensor,
+  #phone[data-layout="adaptive"] #overlay-hdr {
+    grid-area: main;
+    inset: 0 0 0 auto;
+    width: var(--pane-w);
+    z-index: 28;
+    background: var(--cyber-background);
+    border-left: 1px solid rgba(76,29,149,.65);
+  }
+  #phone[data-layout="adaptive"] #overlay-sensor > .overlay-bg,
+  #phone[data-layout="adaptive"] #overlay-hdr > .overlay-bg { display: none; }  /* 停靠时不需要全屏遮罩 */
+  #phone[data-layout="adaptive"] #overlay-sensor.scrim-scale,
+  #phone[data-layout="adaptive"] #overlay-hdr.scrim-scale { animation: paneSlideIn .38s cubic-bezier(.2,.8,.25,1) both; }
+  #phone[data-layout="adaptive"] #overlay-sensor.scrim-scale .overlay-body,
+  #phone[data-layout="adaptive"] #overlay-hdr.scrim-scale .overlay-body { animation: none !important; }
+  #phone[data-layout="adaptive"] #overlay-sensor .overlay-content,
+  #phone[data-layout="adaptive"] #overlay-hdr .overlay-content { animation: paneFadeUp .42s cubic-bezier(.2,.8,.25,1) both; }
+  /* 停靠时主内容区让出右栏宽度 —— sensor 与 hdr 各自的类都收窄 pager */
+  #phone[data-layout="adaptive"].sensor-detail-docked #pager,
+  #phone[data-layout="adaptive"].hdr-docked #pager { margin-right: var(--pane-w); }
+}
+/* 停靠模式退出：ID 选择器权重高于 .overlay.scrim-scale.closing，需显式声明退出关键帧，
+   否则关闭时容器会卡在 paneSlideIn 的 both 终态、直接消失。 */
+#phone[data-layout="adaptive"] #overlay-sensor.scrim-scale.closing,
+#phone[data-layout="adaptive"] #overlay-hdr.scrim-scale.closing { animation: paneSlideOut .38s cubic-bezier(.2,.8,.25,1) both; }
+@keyframes paneSlideIn { from { transform: translateX(28px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes paneSlideOut { from { transform: none; opacity: 1; } to { transform: translateX(28px); opacity: 0; } }
+@keyframes paneFadeUp  { from { transform: translateY(18px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* ── 电视式大屏 ≥1240dp（仅 adaptive）：更宽栅格 + 更大间距 ── */
+@media (min-width: 1240px) {
+  #phone[data-layout="adaptive"] { --app-max-w: 1560px; --grid-cols: 4; --content-pad: 26px; }
+  #phone[data-layout="adaptive"] #tab-row { padding: 0; gap: 8px; }
+  #phone[data-layout="adaptive"] .tab-item { padding: 10px 16px; }
+  #phone[data-layout="adaptive"] .screen { padding-left: var(--content-pad); padding-right: var(--content-pad); }
+}
+
+/* ── 矮高度 / 横屏（height compact <480dp）：压缩头部与 Tab，给内容让位 ──
+   只做压缩、不改形态，故无条件生效 */
+@media (max-height: 480px) {
+  #tab-row { padding-top: 2px; }
+  .tab-item { padding-top: 6px; padding-bottom: 7px; }
+  @media (min-width: 840px) {
+    #phone[data-layout="adaptive"] #tab-row { padding: 0; }
+    #phone[data-layout="adaptive"] .tab-item { padding: 6px 8px 7px; }
+  }
+}
